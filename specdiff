@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+pr = ARGV.shift.to_i
+
+if pr == 0
+  warn "invalid pr number"
+  exit
+end
+
+before = `bundle exec rspec --format documentation --order defined --no-color`
+
+File.open("before.txt", "w") do |f|
+  f.puts before
+end
+
+`git fetch origin`
+`git co-pr #{pr}`
+
+after = `bundle exec rspec --format documentation --order defined --no-color`
+
+File.open("after.txt", "w") do |f|
+  f.puts after
+end
+
+`git co -`
+
+diff = `diff -U 3 before.txt after.txt`
+
+File.open("#{pr}.diff", "w") do |f|
+  f.puts diff
+end
+
+exec "cat #{pr}.diff | colordiff | less -R"
