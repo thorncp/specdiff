@@ -3,6 +3,12 @@
 An experiment with seeing how a pull request changes an application by diffing
 its spec output with master, using RSpec's documentation formatter.
 
+Depends on `colordiff`
+
+```text
+brew install colordiff
+```
+
 Example using [thoughtbot/hound#567][hound-pr]:
 
 ```text
