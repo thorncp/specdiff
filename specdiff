@@ -13,8 +13,9 @@ File.open("before.txt", "w") do |f|
   f.puts before
 end
 
-`git fetch origin`
-`git co-pr #{pr}`
+`git fetch origin > /dev/null 2>&1`
+`git fetch origin pull/#{pr}/head:pr/#{pr} > /dev/null 2>&1`
+`git checkout pr/#{pr} > /dev/null 2>&1`
 
 after = `bundle exec rspec --format documentation --order defined --no-color`
 
@@ -22,7 +23,7 @@ File.open("after.txt", "w") do |f|
   f.puts after
 end
 
-`git co -`
+`git checkout - > /dev/null 2>&1`
 
 diff = `diff -U 3 before.txt after.txt`
 
@@ -30,4 +31,4 @@ File.open("#{pr}.diff", "w") do |f|
   f.puts diff
 end
 
-exec "cat #{pr}.diff | colordiff | less -R"
+exec "cat #{pr}.diff"
