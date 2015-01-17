@@ -7,7 +7,7 @@ if pr == 0
   exit
 end
 
-before = `bundle exec rspec --format documentation --order defined --no-color`
+before = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
 File.open("before.txt", "w") do |f|
   f.puts before
@@ -17,7 +17,7 @@ end
 `git fetch origin pull/#{pr}/head:pr/#{pr} > /dev/null 2>&1`
 `git checkout pr/#{pr} > /dev/null 2>&1`
 
-after = `bundle exec rspec --format documentation --order defined --no-color`
+after = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
 File.open("after.txt", "w") do |f|
   f.puts after
