@@ -5,7 +5,8 @@ its spec output with master, using RSpec's documentation formatter.
 
 ## Color
 
-`colordiff` can be used to colorize the output for a better experience:
+Colordiff (`brew install colordiff`) can be used to colorize the output for a
+better experience:
 
 ```text
 $ specdiff 567 | colordiff
