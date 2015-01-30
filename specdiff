@@ -1,11 +1,20 @@
 #!/usr/bin/env ruby
 
-pr = ARGV.shift.to_i
-
-if pr == 0
-  warn "invalid pr number"
-  exit
+if ARGV.empty?
+  # TODO: does this terminology make sense? probably not
+  puts "Usage: specdiff [base-tree] <tree>"
+  exit 1
 end
+
+if ARGV.size > 2
+  puts "Don't what you're doing"
+  exit 1
+end
+
+base = ARGV.size == 2 ? ARGV.shift : "master"
+tree = ARGV.shift
+
+`git checkout #{base} > /dev/null 2>&1`
 
 before = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
@@ -13,9 +22,7 @@ File.open("before.txt", "w") do |f|
   f.puts before
 end
 
-`git fetch origin > /dev/null 2>&1`
-`git fetch origin pull/#{pr}/head:pr/#{pr} > /dev/null 2>&1`
-`git checkout pr/#{pr} > /dev/null 2>&1`
+`git checkout #{tree} > /dev/null 2>&1`
 
 after = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
@@ -27,8 +34,8 @@ end
 
 diff = `diff -U 3 before.txt after.txt`
 
-File.open("#{pr}.diff", "w") do |f|
+File.open("#{tree}.diff", "w") do |f|
   f.puts diff
 end
 
-exec "cat #{pr}.diff"
+exec "cat #{tree}.diff"
