@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "tmpdir"
+
 if ARGV.empty?
   # TODO: does this terminology make sense? probably not
   puts "Usage: specdiff [base-tree] <tree>"
@@ -18,24 +20,28 @@ tree = ARGV.shift
 
 before = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
-File.open("before.txt", "w") do |f|
-  f.puts before
-end
-
 `git checkout #{tree} > /dev/null 2>&1`
 
 after = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
 
-File.open("after.txt", "w") do |f|
-  f.puts after
-end
-
 `git checkout - > /dev/null 2>&1`
 
-diff = `diff -U 3 before.txt after.txt`
+Dir.mktmpdir do |dir|
+  Dir.chdir(dir)
 
-File.open("#{tree}.diff", "w") do |f|
-  f.puts diff
+  File.open("before.txt", "w") do |f|
+    f.puts before
+  end
+
+  File.open("after.txt", "w") do |f|
+    f.puts after
+  end
+
+  diff = `diff -U 3 before.txt after.txt`
+
+  File.open("#{tree}.diff", "w") do |f|
+    f.puts diff
+  end
+
+  exec "cat #{tree}.diff"
 end
-
-exec "cat #{tree}.diff"
