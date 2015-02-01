@@ -3,27 +3,36 @@
 An experiment with seeing how a pull request changes an application by diffing
 its spec output with master, using RSpec's documentation formatter.
 
-## Color
+## Usage
 
-Colordiff (`brew install colordiff`) can be used to colorize the output for a
-better experience:
+To compare a branch named *my-feature-branch* with master:
 
-```text
-$ specdiff 567 | colordiff
+```sh
+specdiff my-feature-branch
 ```
 
-Add a pager for an even better experience:
+To compare *my-feature-branch* with *my-other-feature-branch*:
 
-```text
-$ specdiff 567 | colordiff | less -R
+```sh
+specdiff my-other-feature-branch my-feature-branch
 ```
+
+Any tree reference can be used for the arguments:
+
+```sh
+specdiff origin/master 7b67bf9
+```
+
+## DIFF environment variable
+
+The `DIFF` environment variable will be used if present.
 
 ## Example
 
 Using [thoughtbot/hound#567][hound-pr]:
 
-```text
-$ specdiff 567
+```sh
+specdiff gl-refactor-hound-addition
 ```
 
 ```diff
