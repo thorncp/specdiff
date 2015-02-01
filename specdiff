@@ -37,11 +37,7 @@ Dir.mktmpdir do |dir|
     f.puts after
   end
 
-  diff = `diff -U 3 before.txt after.txt`
+  diff_command = ENV.fetch("DIFF", "diff")
 
-  File.open("#{tree}.diff", "w") do |f|
-    f.puts diff
-  end
-
-  exec "cat #{tree}.diff"
+  exec "#{diff_command} -U 3 before.txt after.txt"
 end
