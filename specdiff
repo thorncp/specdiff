@@ -18,11 +18,11 @@ tree = ARGV.shift
 
 `git checkout #{base} > /dev/null 2>&1`
 
-before = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
+before = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
 
 `git checkout #{tree} > /dev/null 2>&1`
 
-after = `SPEC_OPTS="--order defined --format documentation --no-color" bundle exec rake`
+after = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
 
 `git checkout - > /dev/null 2>&1`
 
