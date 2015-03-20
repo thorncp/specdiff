@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby --disable-gems
 
+require "fileutils"
 require "tmpdir"
 
 if ARGV.empty?
   # TODO: does this terminology make sense? probably not
+  # TODO: use `git symbolic-ref HEAD --short` as <tree> if no args given
   puts "Usage: specdiff [base-tree] <tree>"
   exit 1
 end
@@ -13,31 +15,44 @@ if ARGV.size > 2
   exit 1
 end
 
+SPECDIFF_DIR = File.expand_path("~/.specdiff")
+FileUtils.mkdir_p(SPECDIFF_DIR)
+
+current_tree = `git symbolic-ref HEAD --short`.chomp
+
 base = ARGV.size == 2 ? ARGV.shift : "master"
 tree = ARGV.shift
 
-`git checkout #{base} > /dev/null 2>&1`
-
-before = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
-
-`git checkout #{tree} > /dev/null 2>&1`
-
-after = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
-
-`git checkout - > /dev/null 2>&1`
-
-Dir.mktmpdir do |dir|
-  Dir.chdir(dir)
-
-  File.open("before.txt", "w") do |f|
-    f.puts before
-  end
-
-  File.open("after.txt", "w") do |f|
-    f.puts after
-  end
-
-  diff_command = ENV.fetch("DIFF", "diff")
-
-  exec "#{diff_command} -U 3 before.txt after.txt"
+def sha(tree)
+  `git rev-parse #{tree}`.chomp
 end
+
+def specfile(sha)
+  File.join(SPECDIFF_DIR, sha)
+end
+
+def diffit(tree)
+  sha = sha(tree)
+  specfile = specfile(sha)
+
+  unless File.exists?(specfile)
+    `git checkout #{tree} > /dev/null 2>&1`
+
+    spec_output = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
+
+    File.open(specfile, "w") do |file|
+      file.puts spec_output
+    end
+  end
+
+  specfile
+end
+
+base_file = diffit(base)
+tree_file = diffit(tree)
+
+`git checkout #{current_tree} > /dev/null 2>&1`
+
+diff_command = ENV.fetch("DIFF", "diff")
+
+exec "#{diff_command} -b -U 3 #{base_file} #{tree_file}"
