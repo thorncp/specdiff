@@ -27,29 +27,28 @@ def sha(tree)
   `git rev-parse #{tree}`.chomp
 end
 
-def specfile(sha)
-  File.join(SPECDIFF_DIR, sha)
+def specfile_path(tree)
+  File.join(SPECDIFF_DIR, sha(tree))
 end
 
-def diffit(tree)
-  sha = sha(tree)
-  specfile = specfile(sha)
+def specfile(tree)
+  specfile_path = specfile_path(tree)
 
-  unless File.exists?(specfile)
+  unless File.exists?(specfile_path)
     `git checkout #{tree} > /dev/null 2>&1`
 
     spec_output = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
 
-    File.open(specfile, "w") do |file|
+    File.open(specfile_path, "w") do |file|
       file.puts spec_output
     end
   end
 
-  specfile
+  specfile_path
 end
 
-base_file = diffit(base)
-tree_file = diffit(tree)
+base_file = specfile(base)
+tree_file = specfile(tree)
 
 `git checkout #{current_tree} > /dev/null 2>&1`
 
