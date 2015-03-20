@@ -9,7 +9,7 @@ if ARGV.empty?
 end
 
 if ARGV.size > 2
-  puts "Don't what you're doing"
+  puts "Don't know what you're doing"
   exit 1
 end
 
