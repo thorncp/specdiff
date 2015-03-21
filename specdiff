@@ -1,57 +1,11 @@
-#!/usr/bin/env ruby --disable-gems
+#!/usr/bin/env bash
 
-require "fileutils"
-require "tmpdir"
+set -e
 
-if ARGV.empty?
-  # TODO: does this terminology make sense? probably not
-  # TODO: use `git symbolic-ref HEAD --short` as <tree> if no args given
-  puts "Usage: specdiff [base-tree] <tree>"
-  exit 1
-end
+grep_pattern="describe\|it\|context\|specify"
 
-if ARGV.size > 2
-  puts "Don't know what you're doing"
-  exit 1
-end
+diff=${DIFF:-diff}
 
-SPECDIFF_DIR = File.expand_path("~/.specdiff")
-FileUtils.mkdir_p(SPECDIFF_DIR)
-
-current_tree = `git symbolic-ref HEAD --short`.chomp
-
-base = ARGV.size == 2 ? ARGV.shift : "master"
-tree = ARGV.shift
-
-def sha(tree)
-  `git rev-parse #{tree}`.chomp
-end
-
-def specfile_path(tree)
-  File.join(SPECDIFF_DIR, sha(tree))
-end
-
-def specfile(tree)
-  specfile_path = specfile_path(tree)
-
-  unless File.exists?(specfile_path)
-    `git checkout #{tree} > /dev/null 2>&1`
-
-    spec_output = `SPEC_OPTS="--dry-run --order defined --format documentation --no-color" bundle exec rake`
-
-    File.open(specfile_path, "w") do |file|
-      file.puts spec_output
-    end
-  end
-
-  specfile_path
-end
-
-base_file = specfile(base)
-tree_file = specfile(tree)
-
-`git checkout #{current_tree} > /dev/null 2>&1`
-
-diff_command = ENV.fetch("DIFF", "diff")
-
-exec "#{diff_command} -b -U 3 #{base_file} #{tree_file}"
+$diff -b -U 3 \
+  <(git grep -w -h --no-line-number --no-color -e $grep_pattern ${1:-master} -- spec/) \
+  <(git grep -w -h --no-line-number --no-color -e $grep_pattern ${2:-HEAD} -- spec/)
